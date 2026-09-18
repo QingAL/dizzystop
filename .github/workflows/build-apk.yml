@@ -34,48 +34,38 @@ jobs:
       - name: Restore release keystore
         env:
           SIGNING_KEYSTORE_BASE64: ${{ secrets.SIGNING_KEYSTORE_BASE64 }}
+          SIGNING_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
+          SIGNING_KEYSTORE_PASSWORD: ${{ secrets.SIGNING_KEYSTORE_PASSWORD }}
+          SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
         run: |
-          if [ -z "$SIGNING_KEYSTORE_BASE64" ]; then
-            echo "Missing repository secret: SIGNING_KEYSTORE_BASE64"
-            exit 1
-          fi
+          for variable in SIGNING_KEYSTORE_BASE64 SIGNING_KEY_ALIAS SIGNING_KEYSTORE_PASSWORD SIGNING_KEY_PASSWORD; do
+            if [ -z "${!variable}" ]; then
+              echo "Missing repository secret: $variable"
+              exit 1
+            fi
+          done
           printf '%s' "$SIGNING_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/dizzystop-release.jks"
+          printf '%s\n' \
+            "storeFile=$RUNNER_TEMP/dizzystop-release.jks" \
+            "storePassword=$SIGNING_KEYSTORE_PASSWORD" \
+            "keyAlias=$SIGNING_KEY_ALIAS" \
+            "keyPassword=$SIGNING_KEY_PASSWORD" \
+            > keystore.properties
 
       - name: Build release APK
         run: |
           chmod +x ./gradlew
           ./gradlew :app:assembleRelease --stacktrace
 
-      - name: Sign and verify release APK
-        env:
-          SIGNING_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
-          SIGNING_KEYSTORE_PASSWORD: ${{ secrets.SIGNING_KEYSTORE_PASSWORD }}
-          SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
+      - name: Verify and name release APK
         run: |
-          for variable in SIGNING_KEY_ALIAS SIGNING_KEYSTORE_PASSWORD SIGNING_KEY_PASSWORD; do
-            if [ -z "${!variable}" ]; then
-              echo "Missing repository secret: $variable"
-              exit 1
-            fi
-          done
-
           BUILD_TOOLS_VERSION="$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -n 1)"
-          ZIPALIGN="$ANDROID_HOME/build-tools/$BUILD_TOOLS_VERSION/zipalign"
           APKSIGNER="$ANDROID_HOME/build-tools/$BUILD_TOOLS_VERSION/apksigner"
-          UNSIGNED_APK="app/build/outputs/apk/release/app-release-unsigned.apk"
-          ALIGNED_APK="app/build/outputs/apk/release/app-release-aligned.apk"
+          RELEASE_APK="app/build/outputs/apk/release/app-release.apk"
           SIGNED_APK="app/build/outputs/apk/release/DizzyStop-release-main-${{ github.run_number }}.apk"
 
-          "$ZIPALIGN" -f -p 4 "$UNSIGNED_APK" "$ALIGNED_APK"
-          "$APKSIGNER" sign \
-            --ks "$RUNNER_TEMP/dizzystop-release.jks" \
-            --ks-key-alias "$SIGNING_KEY_ALIAS" \
-            --ks-pass env:SIGNING_KEYSTORE_PASSWORD \
-            --key-pass env:SIGNING_KEY_PASSWORD \
-            --out "$SIGNED_APK" \
-            "$ALIGNED_APK"
+          mv "$RELEASE_APK" "$SIGNED_APK"
           "$APKSIGNER" verify --verbose --print-certs "$SIGNED_APK"
-          rm -f "$RUNNER_TEMP/dizzystop-release.jks" "$UNSIGNED_APK" "$ALIGNED_APK"
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
@@ -84,3 +74,7 @@ jobs:
           path: app/build/outputs/apk/release/DizzyStop-release-main-${{ github.run_number }}.apk
           if-no-files-found: error
           retention-days: 30
+
+      - name: Remove signing files
+        if: always()
+        run: rm -f "$RUNNER_TEMP/dizzystop-release.jks" keystore.properties

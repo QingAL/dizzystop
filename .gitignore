@@ -21,6 +21,7 @@ captures/
 *.aab
 
 # Signing files and local secrets
+keystore/
 *.jks
 *.keystore
 keystore.properties
