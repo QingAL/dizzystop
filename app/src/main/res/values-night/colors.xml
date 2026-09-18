@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="screen_background">#0F1014</color>
+    <color name="card_background">#191A20</color>
+    <color name="text_primary">#F1F1F5</color>
+    <color name="text_secondary">#A8AAB3</color>
+    <color name="brand_primary">#9CACFF</color>
+    <color name="brand_primary_dark">#8295F8</color>
+    <color name="brand_soft">#252D52</color>
+    <color name="card_stroke">#2B2D35</color>
+    <color name="status_success">#74D8A5</color>
+    <color name="status_success_background">#17251F</color>
+    <color name="status_warning">#F4C45D</color>
+    <color name="status_warning_background">#211E18</color>
+</resources>
