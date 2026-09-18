@@ -44,9 +44,9 @@ jobs:
               exit 1
             fi
           done
-          printf '%s' "$SIGNING_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/dizzystop-release.jks"
+          printf '%s' "$SIGNING_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/dizzystop-release.keystore"
           printf '%s\n' \
-            "storeFile=$RUNNER_TEMP/dizzystop-release.jks" \
+            "storeFile=$RUNNER_TEMP/dizzystop-release.keystore" \
             "storePassword=$SIGNING_KEYSTORE_PASSWORD" \
             "keyAlias=$SIGNING_KEY_ALIAS" \
             "keyPassword=$SIGNING_KEY_PASSWORD" \
@@ -77,4 +77,4 @@ jobs:
 
       - name: Remove signing files
         if: always()
-        run: rm -f "$RUNNER_TEMP/dizzystop-release.jks" keystore.properties
+        run: rm -f "$RUNNER_TEMP/dizzystop-release.keystore" keystore.properties
