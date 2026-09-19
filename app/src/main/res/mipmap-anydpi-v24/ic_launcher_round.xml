@@ -22,5 +22,5 @@
         android:strokeWidth="5" />
     <path
         android:fillColor="#FFFFFFFF"
-        android:pathData="M34,49a5,5 0,1 0,0 10a5,5 0,1 0,0 -10M49,49a5,5 0,1 0,0 10a5,5 0,1 0,0 -10M64,49a5,5 0,1 0,0 10a5,5 0,1 0,0 -10" />
+        android:pathData="M34,49a5,5 0,1 0,0 10a5,5 0,1 0,0 -10M54,49a5,5 0,1 0,0 10a5,5 0,1 0,0 -10M74,49a5,5 0,1 0,0 10a5,5 0,1 0,0 -10" />
 </vector>
